@@ -1,0 +1,46 @@
+# Dependencies and build output
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Local environment and credentials (keep the safe configuration template)
+.env
+.env.*
+!.env.example
+.clasprc.json
+.clasp.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Deployment and local tool state
+.vercel/
+.codex/
+.npm-cache/
+.cache/
+.eslintcache
+
+# Generated test files, screenshots, reports, and coverage
+.test-tmp/
+/artifacts/
+test-results/
+playwright-report/
+blob-report/
+coverage/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+*~
+
+# Operating system and IDE files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+*.suo
+*.user
+
