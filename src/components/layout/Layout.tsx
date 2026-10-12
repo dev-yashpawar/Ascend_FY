@@ -14,6 +14,7 @@ import {
   LogOut,
   GraduationCap,
   ArrowRight,
+  MessageSquare,
 } from 'lucide-react';
 import { getSession, isMock, setSession } from '../../services/api';
 import { usePortfolio } from '../../hooks/usePortfolio';
@@ -74,6 +75,9 @@ export function Footer() {
     <footer className="site-footer container">
       <Logo />
       <p>A little ambition. A place to show it.</p>
+      <Link to="/feedback" className="text-link">
+        Feedback & suggestions
+      </Link>
       <span>© {new Date().getFullYear()} Ascend</span>
     </footer>
   );
@@ -86,6 +90,7 @@ const items = [
   ['activities', 'Activities', Award],
   ['skills', 'Skills', Tags],
   ['settings', 'Profile Settings', Settings2],
+  ['feedback', 'Feedback', MessageSquare],
 ] as const;
 export function DashboardLayout() {
   const { portfolio, loading, error, refresh, setPortfolio } = usePortfolio();
@@ -161,10 +166,15 @@ export function DashboardLayout() {
             <span>Student workspace</span>
             {isMock && <span className="badge demo-label">Demo · stored on this device</span>}
           </div>
-          <Link to={`/u/${portfolio.student.collegeId}`} className="text-link">
-            View portfolio
-            <ArrowUpRight size={15} />
-          </Link>
+          <div className="workspace-header-links">
+            <Link to="/dashboard/feedback" className="text-link workspace-feedback-link">
+              Feedback
+            </Link>
+            <Link to={`/u/${portfolio.student.collegeId}`} className="text-link">
+              View portfolio
+              <ArrowUpRight size={15} />
+            </Link>
+          </div>
         </header>
         <main className="workspace-content">
           <Outlet />

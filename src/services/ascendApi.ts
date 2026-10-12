@@ -8,9 +8,12 @@ import {
   type Session,
   type RecordKind,
   type StudentRecord,
+  type StudentFeedback,
+  type FeedbackReceipt,
 } from '../types';
 import { demoPortfolios } from '../mock/data';
 import { recordId, validateIdentity } from '../utils/profile';
+import { validateFeedback } from '../utils/feedback';
 // Student pilot builds always use the live API. Fixtures are explicitly opt-in in development.
 export const isMock = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_DATA === 'true';
 const DB_KEY = 'ascend:mock:v1';
@@ -78,6 +81,36 @@ async function mock<T>(action: string, payload: Record<string, unknown>): Promis
     return (owner && !payload.publicOnly ? p : publicData(p)) as T;
   }
   if (!owner) throw new Error('Your editing session has ended. Enter your college identity again.');
+  if (action === 'submitFeedback') {
+    const feedback = payload.feedback as StudentFeedback;
+    const issue = validateFeedback(feedback);
+    if (issue) throw new Error(issue);
+    const key = 'ascend:mock:feedback:v1';
+    const records: (StudentFeedback & FeedbackReceipt)[] = JSON.parse(
+      localStorage.getItem(key) || '[]',
+    );
+    const previous = records.find((r) => r.feedbackId === feedback.feedbackId);
+    if (
+      previous &&
+      (previous.collegeId !== id ||
+        previous.category !== feedback.category ||
+        previous.subject !== feedback.subject ||
+        previous.message !== feedback.message)
+    )
+      throw new Error('This feedback submission ID has already been used. Start a new submission.');
+    if (
+      !previous &&
+      records.filter((r) => r.collegeId === id && Date.parse(r.createdAt) >= Date.now() - 86400000)
+        .length >= 10
+    )
+      throw new Error('You have sent 10 messages in the last 24 hours. Please try again later.');
+    const saved = previous || { ...feedback, collegeId: id, createdAt: new Date().toISOString() };
+    if (!previous) {
+      records.push(saved);
+      localStorage.setItem(key, JSON.stringify(records));
+    }
+    return { feedbackId: saved.feedbackId, createdAt: saved.createdAt } as T;
+  }
   if (action === 'saveStudent')
     p.student = {
       ...p.student,
@@ -223,6 +256,24 @@ async function requireUploadBackend() {
   }
 }
 export const api = {
+  submitFeedback: async (feedback: StudentFeedback) => {
+    const issue = validateFeedback(feedback);
+    if (issue) throw new Error(issue);
+    if (!isMock) {
+      let ready = false;
+      try {
+        ready = (await request<{ schemaReady: boolean }>('getFeedbackCapabilities', {}, true))
+          .schemaReady;
+      } catch {
+        /* Old deployments do not have feedback support. */
+      }
+      if (!ready)
+        throw new Error(
+          'Feedback is not connected yet. Please ask the Ascend team to run setupAscend and deploy the updated backend. Your message is still here.',
+        );
+    }
+    return request<FeedbackReceipt>('submitFeedback', { collegeId: feedback.collegeId, feedback });
+  },
   uploadFile: (payload: import('../types').UploadRequest) => {
     if (isMock)
       return Promise.reject(

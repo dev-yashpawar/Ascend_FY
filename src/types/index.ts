@@ -1,4 +1,16 @@
 export type VerificationStatus = 'self_reported' | 'pending' | 'verified' | 'rejected';
+export const feedbackCategories = ['Suggestion', 'Bug report', 'General feedback'] as const;
+export interface StudentFeedback {
+  feedbackId: string;
+  collegeId: string;
+  category: (typeof feedbackCategories)[number];
+  subject: string;
+  message: string;
+}
+export interface FeedbackReceipt {
+  feedbackId: string;
+  createdAt: string;
+}
 export interface Student {
   collegeId: string;
   collegeEmail: string;

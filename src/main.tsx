@@ -9,6 +9,7 @@ import { OnboardingPage, ReadyPage } from './pages/OnboardingPage';
 import { DashboardPage, RecordsPage, SkillsPage, ProfileSettingsPage } from './pages/DashboardPage';
 import { PortfolioBuilderPage } from './pages/PortfolioBuilderPage';
 import { PublicPortfolioPage } from './pages/PublicPortfolioPage';
+import { FeedbackPage } from './pages/FeedbackPage';
 import { DashboardLayout } from './components/layout/Layout';
 import './styles.css';
 function ScrollReset() {
@@ -28,6 +29,7 @@ function App() {
           <Route path="/explore" element={<ExplorePage />} />
           <Route path="/faculty" element={<InfoPage faculty />} />
           <Route path="/about" element={<InfoPage />} />
+          <Route path="/feedback" element={<FeedbackPage />} />
           <Route path="/identity" element={<StudentIdentityPage />} />
           <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/ready" element={<ReadyPage />} />
@@ -40,6 +42,7 @@ function App() {
             <Route path="activities" element={<RecordsPage kind="activity" />} />
             <Route path="skills" element={<SkillsPage />} />
             <Route path="settings" element={<ProfileSettingsPage />} />
+            <Route path="feedback" element={<FeedbackPage workspace />} />
           </Route>
           <Route
             path="*"

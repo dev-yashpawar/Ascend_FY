@@ -22,7 +22,10 @@ it('uses simple text/plain POST and a session token without Google credentials',
   const portfolio = emptyPortfolio('KBTUG23999', 'student@kbtcoe.org');
   const fetchMock = vi
     .fn()
-    .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true, data: { schemaReady: true } }) })
+    .mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ success: true, data: { schemaReady: true } }),
+    })
     .mockResolvedValue({ ok: true, json: async () => ({ success: true, data: portfolio }) });
   vi.stubGlobal('fetch', fetchMock);
   await api.saveLinks({ ...portfolio.links, linkedin: 'https://linkedin.com/in/test' });
@@ -97,6 +100,45 @@ it('supports personal-email student login even with the previous college-only en
   const returning = await api.startSession('STKBTCOE23513', 'STUDENT@gmail.com');
   expect(returning.exists).toBe(true);
   await expect(api.startSession('STKBTCOE23513', 'other@gmail.com')).rejects.toThrow('same email');
+});
+it('persists mock feedback separately and safely retries the same submission', async () => {
+  vi.stubEnv('VITE_USE_MOCK_DATA', 'true');
+  const { api, setSession } = await import('./api');
+  const student = await api.startSession('STKBTCOE23998', 'student@gmail.com');
+  setSession(student.session);
+  const feedback = {
+    feedbackId: 'feedback-test',
+    collegeId: student.session.collegeId,
+    category: 'Suggestion' as const,
+    subject: 'Skills',
+    message: 'Please add suggested skills for each branch.',
+  };
+  const first = await api.submitFeedback(feedback);
+  expect(await api.submitFeedback(feedback)).toEqual(first);
+  expect(JSON.parse(memory.get('ascend:mock:feedback:v1') || '[]')).toHaveLength(1);
+  expect(await api.getPortfolio(student.session.collegeId)).not.toHaveProperty('feedback');
+  setSession(null);
+  await expect(api.submitFeedback(feedback)).rejects.toThrow('editing session');
+});
+it('reports an outdated feedback backend before attempting to write', async () => {
+  const { api } = await import('./api');
+  const fetchMock = vi
+    .fn()
+    .mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: false, message: 'Unknown read operation.' }),
+    });
+  vi.stubGlobal('fetch', fetchMock);
+  await expect(
+    api.submitFeedback({
+      feedbackId: 'feedback-test',
+      collegeId: 'STKBTCOE23513',
+      category: 'Suggestion',
+      subject: '',
+      message: 'Please improve the preview.',
+    }),
+  ).rejects.toThrow('run setupAscend');
+  expect(fetchMock).toHaveBeenCalledTimes(1);
 });
 
 it('does not silently fall back when the deployment URL is still a placeholder', async () => {

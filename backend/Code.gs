@@ -70,6 +70,7 @@ var SCHEMA = {
     'published',
     'updated_at',
   ],
+  Feedback: ['feedback_id', 'college_id', 'category', 'subject', 'message', 'created_at', 'status'],
 };
 var SECTIONS = [
   'About',
@@ -161,6 +162,10 @@ function doGet(e) {
     var p = e.parameter || {};
     var action = p.action;
     var id = p.collegeId ? identityId_(p.collegeId) : '';
+    if (action === 'getFeedbackCapabilities') {
+      var feedbackSheet = spreadsheet_().getSheetByName('Feedback');
+      return { schemaReady: !!feedbackSheet && JSON.stringify(feedbackSheet.getRange(1, 1, 1, SCHEMA.Feedback.length).getValues()[0]) === JSON.stringify(SCHEMA.Feedback) };
+    }
     if (action === 'getContactCapabilities') {
       var linksSheet = spreadsheet_().getSheetByName('Links');
       return { schemaReady: !!linksSheet && JSON.stringify(linksSheet.getRange(1, 1, 1, SCHEMA.Links.length).getValues()[0]) === JSON.stringify(SCHEMA.Links) };
@@ -392,6 +397,32 @@ function date_(value, month) {
     throw new Error('Invalid date.');
   return s;
 }
+function submitFeedback_(f, id, now) {
+  if (!f || typeof f !== 'object' || Array.isArray(f)) throw new Error('Invalid feedback.');
+  var sheet = spreadsheet_().getSheetByName('Feedback');
+  if (!sheet || JSON.stringify(sheet.getRange(1, 1, 1, SCHEMA.Feedback.length).getValues()[0]) !== JSON.stringify(SCHEMA.Feedback))
+    throw new Error('Run setupAscend to create the Feedback tab, then deploy a New version.');
+  var category = required_(f.category, 'Feedback type', 30);
+  if (['Suggestion', 'Bug report', 'General feedback'].indexOf(category) < 0) throw new Error('Choose a valid feedback type.');
+  var subject = clean_(f.subject || '', 120);
+  var message = required_(f.message, 'Your feedback', 2000);
+  if (message.length < 10) throw new Error('Please add at least 10 characters to your feedback.');
+  var feedbackId = uuid_(f.feedbackId);
+  var existing = find_('Feedback', 'feedback_id', feedbackId);
+  if (existing) {
+    if (existing.college_id !== id || existing.category !== category || existing.subject !== subject || existing.message !== message)
+      throw new Error('This feedback submission ID has already been used. Start a new submission.');
+    return { feedbackId: existing.feedback_id, createdAt: existing.created_at };
+  }
+  var cutoff = Date.parse(now) - 24 * 60 * 60 * 1000;
+  if (rows_('Feedback').filter(function (r) { return r.college_id === id && Date.parse(r.created_at) >= cutoff; }).length >= 10)
+    throw new Error('You have sent 10 messages in the last 24 hours. Please try again later.');
+  store_('Feedback', 'feedback_id', {
+    feedback_id: feedbackId, college_id: id, category: category, subject: subject,
+    message: message, created_at: now, status: 'new'
+  });
+  return { feedbackId: feedbackId, createdAt: now };
+}
 function mutate_(b) {
   var id = identityId_(b.collegeId);
   var now = new Date().toISOString();
@@ -430,6 +461,7 @@ function mutate_(b) {
     throw new Error('Your editing session has ended. Enter your college identity again.');
   var student = find_('Students', 'college_id', id);
   if (!student) throw new Error('Student not found.');
+  if (action === 'submitFeedback') return submitFeedback_(b.feedback, id, now);
   if (action === 'uploadFile') return uploadFile_(b, id);
   if (action === 'saveStudent') {
     var s = b.student || {};

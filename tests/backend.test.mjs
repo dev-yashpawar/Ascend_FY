@@ -144,9 +144,38 @@ function harness() {
       .data;
   return { context, sheets, post, get, start, root };
 }
-test('sets up all seven exact schemas and normalizes case', () => {
+test('feedback is private, validates input, and retries never duplicate a submission', () => {
   const h = harness();
-  assert.equal(Object.keys(h.sheets).length, 7);
+  const session = h.start('STKBTCOE23513').session;
+  const feedback = { feedbackId: 'feedback-test-1', category: 'Suggestion', subject: 'Portfolio preview', message: '=Please make the mobile preview easier to find.' };
+  const body = { action: 'submitFeedback', ...session, feedback };
+  assert.equal(h.get({action:'getFeedbackCapabilities'}).data.schemaReady, true);
+  const first = h.post(body);
+  assert.equal(first.success, true);
+  assert.deepEqual(h.post(body), first);
+  assert.equal(h.sheets.Feedback.getLastRow(), 2);
+  assert.equal(h.sheets.Feedback.data[1][1], session.collegeId);
+  assert.equal(h.sheets.Feedback.data[1][6], 'new');
+  assert.equal(h.post({...body, token:'invalid'}).success, false);
+  assert.equal(h.post({...body, feedback:{...feedback,message:'Different feedback message'}}).success, false);
+  const another = h.start('STKBTCOE23514').session;
+  assert.equal(h.post({...body,...another}).success, false);
+  assert.equal(h.get({action:'getFeedback',collegeId:session.collegeId,token:session.token}).success, false);
+  assert.equal(Object.hasOwn(h.get({action:'getPortfolio',collegeId:session.collegeId,token:session.token}).data,'feedback'), false);
+  for (const invalid of [{message:'short'}, {message:'x'.repeat(2001)}, {category:'Admin'}, {subject:'x'.repeat(121)}]) {
+    assert.equal(h.post({...body,feedback:{...feedback,feedbackId:'new-feedback',...invalid}}).success, false);
+  }
+  h.context.setupAscend();
+  assert.equal(h.sheets.Feedback.getLastRow(), 2);
+  for(let i=1;i<10;i++) assert.equal(h.post({...body,feedback:{...feedback,feedbackId:'feedback-'+i}}).success,true);
+  assert.equal(h.post({...body,feedback:{...feedback,feedbackId:'feedback-too-many'}}).success,false);
+  assert.equal(h.post(body).success,true);
+  assert.equal(h.sheets.Feedback.getLastRow(),11);
+});
+
+test('sets up all eight exact schemas and normalizes case', () => {
+  const h = harness();
+  assert.equal(Object.keys(h.sheets).length, 8);
   const r = h.post({
     action: 'startSession',
     collegeId: 'kbtug23513',
@@ -513,6 +542,7 @@ test('public aggregates omit proof URLs, editable reads retain them, and student
     'Activities',
     'Links',
     'PortfolioSettings',
+    'Feedback',
   ]);
 });
 
