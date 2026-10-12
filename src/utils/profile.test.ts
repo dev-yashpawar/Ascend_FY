@@ -2,10 +2,17 @@ import { describe, it, expect } from 'vitest';
 import { emptyPortfolio } from '../types';
 import { validateIdentity, strength, safeUrl, activitiesFor } from './profile';
 describe('Identity and public profile rules', () => {
-  it('matches configured ID and college email without case sensitivity', () => {
+  it('accepts student IDs with personal or college email, preserving legacy identities', () => {
+    expect(validateIdentity('stkbtcoe23513', 'Student@gmail.com')).toBeNull();
+    expect(validateIdentity('STKBTCOE123456', 'student@outlook.com')).toBeNull();
+    expect(validateIdentity('STKBTCOE23513', 'student@kbtcoe.org')).toBeNull();
     expect(validateIdentity('kbtug23513', 'Kbtug23513@kbtcoe.org')).toBeNull();
     expect(validateIdentity('KBT23513', 'x@kbtcoe.org')).toBeTruthy();
-    expect(validateIdentity('KBTUG23513', 'x@gmail.com')).toBeTruthy();
+    expect(validateIdentity('KBTUG23513', 'x@gmail.com')).toBeNull();
+    expect(validateIdentity('STKBTCOE', 'x@gmail.com')).toBeTruthy();
+    expect(validateIdentity('STKBTCOE23abc', 'x@gmail.com')).toBeTruthy();
+    expect(validateIdentity('STKBTCOE23513', 'x@')).toBeTruthy();
+    expect(validateIdentity('STKBTCOE23513', 'x@gmail')).toBeTruthy();
   });
   it('calculates profile strength from records rather than random numbers', () => {
     const p = emptyPortfolio('KBTUG23999', 'student@kbtcoe.org');

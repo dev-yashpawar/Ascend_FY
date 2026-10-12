@@ -9,8 +9,8 @@ test('complete student onboarding, customization, publishing and public sharing'
   isMobile,
 }) => {
   await page.goto('/identity');
-  await page.getByLabel('College ID').fill('KBTUG23999');
-  await page.getByLabel('College Email').fill('test.student@kbtcoe.org');
+  await page.getByLabel('College ID').fill('STKBTCOE23999');
+  await page.getByLabel('Email address').fill('test.student@gmail.com');
   await page.getByRole('button', { name: 'Let’s build your portfolio' }).click();
   await expect(page.getByRole('heading', { name: 'First, introduce yourself.' })).toBeVisible();
   await page.getByLabel('Full name').fill('Test Student');
@@ -77,11 +77,11 @@ test('complete student onboarding, customization, publishing and public sharing'
   await expect(page.getByRole('heading', { name: 'Education', exact: true })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Test Student.', exact: true })).toBeVisible();
   await expect(page.getByText('Institution Verified', { exact: false })).toHaveCount(0);
-  await expect(page.getByText('test.student@kbtcoe.org')).toHaveCount(0);
+  await expect(page.getByText('test.student@gmail.com')).toHaveCount(0);
   await noOverflow(page);
   await page.getByRole('button', { name: 'Show portfolio QR code' }).click();
   await expect(page.locator('.qr-dialog > svg')).toBeVisible();
-  await expect(page.getByLabel('Shareable portfolio URL')).toHaveValue(/\/u\/KBTUG23999$/);
+  await expect(page.getByLabel('Shareable portfolio URL')).toHaveValue(/\/u\/STKBTCOE23999$/);
   await page.getByRole('button', { name: 'Close QR code' }).click();
   await page.emulateMedia({ media: 'print' });
   await expect(page.locator('.portfolio-nav')).toBeHidden();

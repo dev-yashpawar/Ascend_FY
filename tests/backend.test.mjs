@@ -159,7 +159,7 @@ test('sets up all seven exact schemas and normalizes case', () => {
 test('rejects invalid identities and wrong returning email', () => {
   const h = harness();
   assert.equal(
-    h.post({ action: 'startSession', collegeId: 'KBTUG23513', collegeEmail: 'x@gmail.com' })
+    h.post({ action: 'startSession', collegeId: 'STKBTCOE23513', collegeEmail: 'invalid@' })
       .success,
     false,
   );
@@ -169,6 +169,32 @@ test('rejects invalid identities and wrong returning email', () => {
       .success,
     false,
   );
+});
+test('accepts STKBTCOE identities with personal or college email and protects returning students', () => {
+  const h = harness();
+  const props = h.context.PropertiesService.getScriptProperties();
+  props.setProperty('COLLEGE_EMAIL_DOMAIN', 'kbtcoe.org');
+  for (const [suffix, email, oldPattern] of [
+    ['23513', 'Student@gmail.com', '^KBTUG[0-9]{5}$'],
+    ['23514', 'student@outlook.com', '^KBTUG\\d{5}$'],
+    ['123456', 'student@kbtcoe.org', '^(?:STKBTCOE[0-9]+|KBTUG[0-9]{5})$'],
+  ]) {
+    props.setProperty('COLLEGE_ID_PATTERN', oldPattern);
+    const id = 'STKBTCOE' + suffix;
+    const first = h.post({ action: 'startSession', collegeId: id.toLowerCase(), collegeEmail: email });
+    assert.equal(first.success, true);
+    assert.equal(first.data.exists, false);
+    assert.equal(first.data.portfolio.student.collegeId, id);
+    assert.equal(first.data.portfolio.student.collegeEmail, email.toLowerCase());
+    const returning = h.post({ action: 'startSession', collegeId: id, collegeEmail: email.toUpperCase() });
+    assert.equal(returning.success, true);
+    assert.equal(returning.data.exists, true);
+    assert.equal(h.post({ action: 'startSession', collegeId: id, collegeEmail: 'someone.else@gmail.com' }).success, false);
+  }
+  for (const id of ['STKBTCOE', 'STKBTCOE23abc', 'STKBTCOE23/513', 'WRONG23513']) {
+    assert.equal(h.post({ action: 'startSession', collegeId: id, collegeEmail: 'student@gmail.com' }).success, false);
+  }
+  assert.equal(h.sheets.Students.getLastRow(), 4);
 });
 test('keeps drafts private, requires edit tokens and redacts public email', () => {
   const h = harness();

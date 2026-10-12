@@ -239,7 +239,7 @@ export function PortfolioBuilderPage() {
             <p>
               {isMock
                 ? 'Demo publishing is stored on this device. Connect Google Sheets for a public link that works everywhere.'
-                : 'Published portfolios are available to anyone with the link. Your college email stays private.'}
+                : 'Published portfolios are available to anyone with the link. Your login email stays private.'}
             </p>
             <button
               className="btn primary full"

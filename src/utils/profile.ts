@@ -1,15 +1,17 @@
 import type { Portfolio, Activity, Section } from '../types';
 export const collegeName = import.meta.env.VITE_COLLEGE_NAME || 'KBT College of Engineering';
-export const emailDomain = import.meta.env.VITE_COLLEGE_EMAIL_DOMAIN || 'kbtcoe.org';
-export const idPattern = import.meta.env.VITE_COLLEGE_ID_PATTERN || '^KBTUG\\d{5}$';
+const defaultIdPattern = '^(?:STKBTCOE[0-9]+|KBTUG[0-9]{5})$';
+const configuredIdPattern = import.meta.env.VITE_COLLEGE_ID_PATTERN;
+// Upgrade the previous default even when an existing deployment still has it configured.
+export const idPattern =
+  !configuredIdPattern || ['^KBTUG\\d{5}$', '^KBTUG[0-9]{5}$'].includes(configuredIdPattern)
+    ? defaultIdPattern
+    : configuredIdPattern;
 export function validateIdentity(id: string, email: string): string | null {
-  if (!new RegExp(idPattern, 'i').test(id.trim()))
-    return 'Enter a valid college ID, for example KBTUG23513.';
-  if (
-    !/^[^\s@]+@[^\s@]+$/.test(email.trim()) ||
-    email.trim().split('@')[1].toLowerCase() !== emailDomain.toLowerCase()
-  )
-    return `Use your college email at ${emailDomain}.`;
+  if (id.trim().length > 30 || !new RegExp(idPattern, 'i').test(id.trim()))
+    return 'Enter your college ID: STKBTCOE followed by numbers, for example STKBTCOE23513.';
+  if (email.trim().length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()))
+    return 'Enter a valid personal or college email address.';
   return null;
 }
 export function safeUrl(value: string): string | undefined {

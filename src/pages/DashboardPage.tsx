@@ -182,7 +182,7 @@ export function DashboardPage() {
       <div className="dashboard-completion">
         <Check size={15} />
         <span>
-          Your college email stays private. Your records stay self reported until verified.
+          Your login email stays private. Your records stay self reported until verified.
         </span>
       </div>
     </>

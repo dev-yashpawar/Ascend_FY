@@ -86,6 +86,18 @@ it('keeps unpublished mock portfolios out of public views', async () => {
     (await mod.api.getPublishedPortfolios()).some((p) => p.student.collegeId === 'KBTUG23999'),
   ).toBe(false);
 });
+it('supports personal-email student login even with the previous college-only environment defaults', async () => {
+  vi.stubEnv('VITE_USE_MOCK_DATA', 'true');
+  vi.stubEnv('VITE_COLLEGE_ID_PATTERN', '^KBTUG[0-9]{5}$');
+  vi.stubEnv('VITE_COLLEGE_EMAIL_DOMAIN', 'kbtcoe.org');
+  const { api } = await import('./api');
+  const first = await api.startSession('STKBTCOE23513', 'Student@gmail.com');
+  expect(first.exists).toBe(false);
+  expect(first.portfolio.student.collegeEmail).toBe('student@gmail.com');
+  const returning = await api.startSession('STKBTCOE23513', 'STUDENT@gmail.com');
+  expect(returning.exists).toBe(true);
+  await expect(api.startSession('STKBTCOE23513', 'other@gmail.com')).rejects.toThrow('same email');
+});
 
 it('does not silently fall back when the deployment URL is still a placeholder', async () => {
   const { api } = await import('./api');

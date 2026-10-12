@@ -289,15 +289,16 @@ function url_(value) {
 }
 function identityId_(value) {
   var id = required_(value, 'College ID', 30).toUpperCase();
-  var pattern = props_().getProperty('COLLEGE_ID_PATTERN') || '^KBTUG\\d{5}$';
+  var pattern = props_().getProperty('COLLEGE_ID_PATTERN');
+  if (!pattern || ['^KBTUG\\d{5}$', '^KBTUG[0-9]{5}$'].indexOf(pattern) >= 0)
+    pattern = '^(?:STKBTCOE[0-9]+|KBTUG[0-9]{5})$';
   if (!new RegExp(pattern, 'i').test(id)) throw new Error('Invalid college ID format.');
   return id;
 }
 function email_(value) {
-  var email = required_(value, 'College email', 254).toLowerCase();
-  var domain = (props_().getProperty('COLLEGE_EMAIL_DOMAIN') || 'kbtcoe.org').toLowerCase();
-  if (!/^[^\s@]+@[^\s@]+$/.test(email) || email.split('@')[1] !== domain)
-    throw new Error('Use your ' + domain + ' college email.');
+  var email = required_(value, 'Email address', 254).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    throw new Error('Enter a valid personal or college email address.');
   return email;
 }
 function camel_(obj) {
@@ -400,7 +401,7 @@ function mutate_(b) {
     var student = find_('Students', 'college_id', id);
     var exists = !!student;
     if (student && String(student.college_email).toLowerCase() !== email)
-      throw new Error('This college ID uses a different college email. Check your details.');
+      throw new Error('This college ID is already registered. Use the same email you registered with.');
     if (!student) {
       store_('Students', 'college_id', {
         college_id: id,

@@ -61,7 +61,7 @@ export function ProfileForm({
           autoComplete="name"
         />
         <Field label="College ID" value={student.collegeId} readOnly />
-        <Field label="College email" value={student.collegeEmail} readOnly />
+        <Field label="Login email" value={student.collegeEmail} readOnly />
         <div className="field">
           <label htmlFor="branch">Branch *</label>
           <select

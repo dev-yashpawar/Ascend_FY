@@ -13,7 +13,7 @@ Live API mode is the default. Deploy the Apps Script backend and configure `.env
 
 ## Student journey
 
-1. Create My Portfolio → college ID and college email.
+1. Create My Portfolio → college ID (`STKBTCOE` followed by digits) and personal or college email.
 2. Complete the eight-step wizard. Each successful profile/skills/links step saves; projects, experiences, and activities save individually.
 3. Review actual profile strength and customize the portfolio.
 4. Choose Minimal, Modern, or Developer; font, accent, visible sections, and order.
@@ -27,8 +27,7 @@ Follow [backend/SETUP.md](backend/SETUP.md). Copy `.env.example` to `.env.local`
 ```dotenv
 VITE_USE_MOCK_DATA=false
 VITE_ASCEND_API_URL=https://script.google.com/macros/s/YOUR_DEPLOYMENT/exec
-VITE_COLLEGE_ID_PATTERN=^KBTUG[0-9]{5}$
-VITE_COLLEGE_EMAIL_DOMAIN=kbtcoe.org
+VITE_COLLEGE_ID_PATTERN=^(?:STKBTCOE[0-9]+|KBTUG[0-9]{5})$
 VITE_COLLEGE_NAME=KBT College of Engineering
 ```
 

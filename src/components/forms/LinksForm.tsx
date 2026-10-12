@@ -91,7 +91,7 @@ export function LinksForm({
       <fieldset className="public-contact-fields">
         <legend>Public contact details</legend>
         <p className="form-description">
-          Choose how visitors can contact you. Your college login email stays private.
+          Choose how visitors can contact you. Your login email stays private.
         </p>
         <Field
           label="Public contact email"

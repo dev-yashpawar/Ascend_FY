@@ -61,7 +61,9 @@ async function mock<T>(action: string, payload: Record<string, unknown>): Promis
     const error = validateIdentity(id, email);
     if (error) throw new Error(error);
     if (p && p.student.collegeEmail.toLowerCase() !== email)
-      throw new Error('This college ID uses a different college email. Check your details.');
+      throw new Error(
+        'This college ID is already registered. Use the same email you registered with.',
+      );
     const exists = !!p;
     p ||= emptyPortfolio(id, email);
     db[id] = p;

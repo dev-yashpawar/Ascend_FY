@@ -1,6 +1,6 @@
 # Public portfolio contact upgrade
 
-The portfolio redesign includes optional public contact fields. College login email remains private. Upload handling, verification, and publishing are unchanged.
+The portfolio redesign includes optional public contact fields. Login email remains private. Upload handling, verification, and publishing are unchanged.
 
 ## Update the existing Apps Script deployment
 
@@ -16,7 +16,7 @@ The migration appends columns and preserves existing rows and visibility choices
 
 1. Sign in and open the existing professional links editor.
 2. Add a public contact email and optional phone. Leave both visibility boxes unchecked, then save.
-3. Open the published `/u/:collegeId` portfolio in a separate browser session. Neither contact value nor college login email should appear.
+3. Open the published `/u/:collegeId` portfolio in a separate browser session. Neither contact value nor login email should appear.
 4. Enable **Show email publicly**, save, and reload the public portfolio. The contact section now includes Email me. Phone remains hidden.
 5. Enable phone visibility only if desired. Turn either switch off to remove that value from public API responses and public pages.
 

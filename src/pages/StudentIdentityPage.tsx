@@ -5,7 +5,7 @@ import { Logo } from '../components/layout/Layout';
 import { Field, Feedback } from '../components/ui';
 import { api, isMock, setSession } from '../services/api';
 import { usePortfolio } from '../hooks/usePortfolio';
-import { emailDomain, validateIdentity } from '../utils/profile';
+import { validateIdentity } from '../utils/profile';
 export function StudentIdentityPage() {
   const [id, setId] = useState('');
   const [email, setEmail] = useState('');
@@ -125,7 +125,7 @@ export function StudentIdentityPage() {
               <form onSubmit={submit}>
                 <Field
                   label="College ID"
-                  placeholder="KBTUG23513"
+                  placeholder="STKBTCOE23513"
                   value={id}
                   onChange={(e) => setId(e.target.value.toUpperCase())}
                   required
@@ -133,14 +133,14 @@ export function StudentIdentityPage() {
                   maxLength={30}
                 />
                 <Field
-                  label="College Email"
+                  label="Email address"
                   type="email"
-                  placeholder={`kbtug23513@${emailDomain}`}
+                  placeholder="you@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
-                  hint={`Use your ${emailDomain} college email.`}
+                  hint="Use your personal or college email. Return with the same email next time."
                 />
                 <Feedback error={error} />
                 <button className="btn primary full" disabled={busy}>
@@ -151,7 +151,7 @@ export function StudentIdentityPage() {
               <div className="identity-privacy">
                 <ShieldCheck size={18} />
                 <p>
-                  Your college email stays private. Only published portfolio details are shared
+                  Your login email stays private. Only published portfolio details are shared
                   publicly.
                 </p>
               </div>

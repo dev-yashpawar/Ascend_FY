@@ -17,7 +17,7 @@ No IDs or Google credentials are required in the frontend. An optional `SPREADSH
 
 Open **Project Settings**, enable **Show appsscript.json manifest file in editor**, and replace its contents with `backend/appsscript.json`. It includes Sheets and Drive scopes; no advanced service or API key is needed.
 
-Optional Script Properties: `COLLEGE_ID_PATTERN` = `^KBTUG[0-9]{5}$`, `COLLEGE_EMAIL_DOMAIN` = `kbtcoe.org`. Defaults already match your identity example.
+Optional Script Property: `COLLEGE_ID_PATTERN` = `^(?:STKBTCOE[0-9]+|KBTUG[0-9]{5})$`. New students use IDs such as `STKBTCOE23513` with a personal or college email. Legacy KBTUG records remain accessible. The old KBTUG-only default property is upgraded automatically. `COLLEGE_EMAIL_DOMAIN` no longer restricts login emails and can be removed.
 
 ## 2. Check privacy and run setup
 
@@ -72,8 +72,7 @@ Copy `.env.example` to `.env.local`, then replace ONLY the endpoint placeholder 
 ```dotenv
 VITE_USE_MOCK_DATA=false
 VITE_ASCEND_API_URL=PASTE_APPS_SCRIPT_WEB_APP_URL_HERE
-VITE_COLLEGE_ID_PATTERN=^KBTUG[0-9]{5}$
-VITE_COLLEGE_EMAIL_DOMAIN=kbtcoe.org
+VITE_COLLEGE_ID_PATTERN=^(?:STKBTCOE[0-9]+|KBTUG[0-9]{5})$
 VITE_COLLEGE_NAME=KBT College of Engineering
 ```
 
