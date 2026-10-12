@@ -5,11 +5,12 @@ Students can submit suggestions, bug reports, and general feedback from **Feedba
 ## Enable Google Sheets collection
 
 1. Copy the complete updated `backend/Code.gs` into the existing Apps Script project and save.
-2. Select and run **setupAscend**. It creates the **Feedback** tab and preserves existing student records and other tabs.
+2. Select and run **setupAscend**. Feedback now lives in the separate **Ascend Feedback** spreadsheet in the **Ascend MVP** folder: https://docs.google.com/spreadsheets/d/1e4uQk1vn4n_FFwvnqaZjZsDefrWruRNDYiSFgKXQ1E0/edit. Its ID is configured in the server-only `FEEDBACK_SPREADSHEET_ID` constant; a Script Property of the same name can override it. Do not change the student `SPREADSHEET_ID`.
+   Setup copies any missing historical feedback from the old student spreadsheet's Feedback tab by submission ID. It preserves the original tab and destination status edits, and can be rerun without duplicates. Run it again **after deployment** to catch submissions received by the old version during the switch. The Apps Script deployment owner must have edit access to both spreadsheets; setup reports permission problems before testing submissions.
 3. **Deploy → Manage deployments → Edit → Version → New version → Deploy.** Saving the source alone does not update the live `/exec` endpoint.
 4. Keep the same `VITE_ASCEND_API_URL`. Redeploy the frontend on Vercel after pushing the changes.
 
-The Feedback tab contains:
+The Feedback tab inside **Ascend Feedback** contains:
 
 | Column | Meaning |
 | --- | --- |

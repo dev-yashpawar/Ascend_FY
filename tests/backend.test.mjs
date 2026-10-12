@@ -46,6 +46,8 @@ class Sheet {
 }
 function harness() {
   const sheets = {};
+  const mainSheets = {};
+  const feedbackSheets = {};
   const filesById = new Map();
   class Folder {
     constructor(name) {
@@ -103,7 +105,16 @@ function harness() {
   }
   const root = new Folder('Student Uploads');
   const properties = { SPREADSHEET_ID: 'test' };
-  const ss = { getSheetByName: (n) => sheets[n], insertSheet: (n) => (sheets[n] = new Sheet()) };
+  const ss = {
+    getId: () => 'test',
+    getSheetByName: (n) => mainSheets[n],
+    insertSheet: (n) => (sheets[n] = mainSheets[n] = new Sheet()),
+  };
+  const feedbackSS = {
+    getId: () => 'feedback-test',
+    getSheetByName: (n) => feedbackSheets[n],
+    insertSheet: (n) => (sheets[n] = feedbackSheets[n] = new Sheet()),
+  };
   const context = vm.createContext({
     DriveApp: {
       getFolderById: () => root,
@@ -120,7 +131,7 @@ function harness() {
         setProperty: (k, v) => (properties[k] = v),
       }),
     },
-    SpreadsheetApp: { openById: () => ss, flush: () => {} },
+    SpreadsheetApp: { openById: (id) => id === 'test' ? ss : feedbackSS, flush: () => {} },
     Utilities: {
       base64Decode: (v) => [...Buffer.from(v, 'base64')],
       newBlob: (bytes, mime, name) => ({ bytes, mime, name }),
@@ -142,8 +153,34 @@ function harness() {
   const start = (id = 'KBTUG23999') =>
     post({ action: 'startSession', collegeId: id, collegeEmail: id.toLowerCase() + '@kbtcoe.org' })
       .data;
-  return { context, sheets, post, get, start, root };
+  return { context, sheets, mainSheets, feedbackSheets, post, get, start, root };
 }
+test('feedback uses a separate spreadsheet and migration preserves records without duplicates', () => {
+  const h = harness();
+  assert.equal(h.mainSheets.Feedback, undefined);
+  assert.equal(h.feedbackSheets.Feedback, h.sheets.Feedback);
+  assert.equal(h.get({ action: 'getFeedbackCapabilities' }).data.storage, 'separate_spreadsheet');
+  const session = h.start().session;
+  const feedback = { feedbackId: 'copied-feedback', category: 'Suggestion', subject: '', message: 'Please improve the portfolio preview.' };
+  assert.equal(h.post({ action: 'submitFeedback', ...session, feedback }).success, true);
+  const destination = h.feedbackSheets.Feedback;
+  const legacy = h.mainSheets.Feedback = new Sheet();
+  legacy.appendRow([...destination.data[0]]);
+  legacy.appendRow([...destination.data[1]]);
+  legacy.appendRow(['late-feedback', session.collegeId, 'Suggestion', 'Old deployment', '=Please preserve this historical message.', '2026-10-12T00:00:00.000Z', 'reviewed']);
+  destination.data[1][6] = 'resolved';
+  h.context.setupAscend();
+  h.context.setupAscend();
+  assert.equal(destination.getLastRow(), 3);
+  assert.equal(destination.data[1][6], 'resolved');
+  assert.equal(destination.data[2][0], 'late-feedback');
+  assert.equal(destination.data[2][4], '=Please preserve this historical message.');
+  assert.equal(destination.data[2][6], 'reviewed');
+  assert.equal(legacy.getLastRow(), 3);
+  legacy.data[0][0] = 'wrong_header';
+  assert.throws(() => h.context.setupAscend(), /Unexpected headers/);
+  assert.equal(destination.getLastRow(), 3);
+});
 test('feedback is private, validates input, and retries never duplicate a submission', () => {
   const h = harness();
   const session = h.start('STKBTCOE23513').session;

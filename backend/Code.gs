@@ -1,5 +1,6 @@
 /** Ascend MVP. Resource IDs stay on the server; setup preserves existing data. */
 const SPREADSHEET_ID = '1r-ORdVKmKzzb3Zv4DO0OqwMWFYSgYRItuQElQqG_fRI';
+const FEEDBACK_SPREADSHEET_ID = '1e4uQk1vn4n_FFwvnqaZjZsDefrWruRNDYiSFgKXQ1E0';
 const UPLOAD_ROOT_FOLDER_ID = '1H2fhrSwv6jcvQb_AB4jKtOYGxxWxjvXJ';
 var UPLOAD_API_VERSION = '2026-10-09.uploads.v2';
 var UPLOAD_CATEGORIES = ['profile', 'projects', 'certificates', 'internships', 'achievements', 'other'];
@@ -107,9 +108,14 @@ function spreadsheet_() {
   if (!id) throw new Error('Backend not configured. Set SPREADSHEET_ID in Script Properties.');
   return SpreadsheetApp.openById(id);
 }
+function tableSpreadsheet_(name) {
+  if (name !== 'Feedback') return spreadsheet_();
+  var id = props_().getProperty('FEEDBACK_SPREADSHEET_ID') || FEEDBACK_SPREADSHEET_ID;
+  return id ? SpreadsheetApp.openById(id) : spreadsheet_();
+}
 function setupAscend() {
-  var ss = spreadsheet_();
   Object.keys(SCHEMA).forEach(function (name) {
+    var ss = tableSpreadsheet_(name);
     var sheet = ss.getSheetByName(name) || ss.insertSheet(name);
     if (!sheet.getLastRow()) {
       sheet.appendRow(SCHEMA[name]);
@@ -144,6 +150,33 @@ function setupAscend() {
         throw new Error('Unexpected headers in ' + name + '. Existing data has been preserved.');
     }
   });
+  migrateFeedback_();
+}
+// Copy missing historical submissions; preserve the old tab and destination edits.
+function migrateFeedback_() {
+  var source = spreadsheet_();
+  var destination = tableSpreadsheet_('Feedback');
+  if (source.getId() === destination.getId()) return;
+  var oldSheet = source.getSheetByName('Feedback');
+  if (!oldSheet || !oldSheet.getLastRow()) return;
+  if (JSON.stringify(oldSheet.getRange(1, 1, 1, SCHEMA.Feedback.length).getValues()[0]) !== JSON.stringify(SCHEMA.Feedback))
+    throw new Error('Unexpected headers in the old Feedback tab. Existing data has been preserved.');
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(15000)) throw new Error('Feedback migration is busy. Please retry setupAscend.');
+  try {
+    var known = Object.create(null);
+    rows_('Feedback').forEach(function (r) { known[r.feedback_id] = true; });
+    oldSheet.getDataRange().getValues().slice(1).forEach(function (row) {
+      if (!row[0] || known[row[0]]) return;
+      var record = {};
+      SCHEMA.Feedback.forEach(function (key, i) {
+        record[key] = row[i] instanceof Date ? row[i].toISOString() : row[i];
+      });
+      store_('Feedback', 'feedback_id', record);
+      known[row[0]] = true;
+    });
+    SpreadsheetApp.flush();
+  } finally { lock.releaseLock(); }
 }
 function json_(data) {
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(
@@ -163,8 +196,11 @@ function doGet(e) {
     var action = p.action;
     var id = p.collegeId ? identityId_(p.collegeId) : '';
     if (action === 'getFeedbackCapabilities') {
-      var feedbackSheet = spreadsheet_().getSheetByName('Feedback');
-      return { schemaReady: !!feedbackSheet && JSON.stringify(feedbackSheet.getRange(1, 1, 1, SCHEMA.Feedback.length).getValues()[0]) === JSON.stringify(SCHEMA.Feedback) };
+      var feedbackSheet = tableSpreadsheet_('Feedback').getSheetByName('Feedback');
+      return {
+        schemaReady: !!feedbackSheet && JSON.stringify(feedbackSheet.getRange(1, 1, 1, SCHEMA.Feedback.length).getValues()[0]) === JSON.stringify(SCHEMA.Feedback),
+        storage: tableSpreadsheet_('Feedback').getId() === spreadsheet_().getId() ? 'student_spreadsheet' : 'separate_spreadsheet'
+      };
     }
     if (action === 'getContactCapabilities') {
       var linksSheet = spreadsheet_().getSheetByName('Links');
@@ -211,7 +247,7 @@ function doPost(e) {
   });
 }
 function rows_(name) {
-  var sheet = spreadsheet_().getSheetByName(name);
+  var sheet = tableSpreadsheet_(name).getSheetByName(name);
   if (!sheet) throw new Error('Run setupAscend first.');
   var values = sheet.getDataRange().getValues();
   return values
@@ -248,7 +284,7 @@ function cell_(value) {
   return value === undefined || value === null ? '' : value;
 }
 function store_(name, key, obj) {
-  var sheet = spreadsheet_().getSheetByName(name);
+  var sheet = tableSpreadsheet_(name).getSheetByName(name);
   var values = sheet.getDataRange().getValues();
   var col = SCHEMA[name].indexOf(key);
   var row = values.findIndex(function (r, i) {
@@ -399,7 +435,7 @@ function date_(value, month) {
 }
 function submitFeedback_(f, id, now) {
   if (!f || typeof f !== 'object' || Array.isArray(f)) throw new Error('Invalid feedback.');
-  var sheet = spreadsheet_().getSheetByName('Feedback');
+  var sheet = tableSpreadsheet_('Feedback').getSheetByName('Feedback');
   if (!sheet || JSON.stringify(sheet.getRange(1, 1, 1, SCHEMA.Feedback.length).getValues()[0]) !== JSON.stringify(SCHEMA.Feedback))
     throw new Error('Run setupAscend to create the Feedback tab, then deploy a New version.');
   var category = required_(f.category, 'Feedback type', 30);

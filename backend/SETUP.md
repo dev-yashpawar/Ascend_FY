@@ -34,7 +34,7 @@ Setup validates existing headers, creates missing tabs if necessary, and preserv
 - `Activities`
 - `Links` (optional public contact fields and safe migration: see [PUBLIC-CONTACT-SETUP.md](./PUBLIC-CONTACT-SETUP.md))
 - `PortfolioSettings`
-- `Feedback` (private student suggestions; see [FEEDBACK-SETUP.md](./FEEDBACK-SETUP.md))
+- `Feedback` lives in the separate **Ascend Feedback** spreadsheet in the Ascend MVP folder. `setupAscend` preserves the old tab and copies missing historical submissions; see [FEEDBACK-SETUP.md](./FEEDBACK-SETUP.md).
 
 Setup safely appends `is_public_proof` to existing Activities and Experience tabs, filling missing values with false while preserving rows and existing visibility choices. Unrelated header mismatches stop setup and name the tab; never clear a populated tab to resolve them. The code does not create the old uppercase tabs.
 

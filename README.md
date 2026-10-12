@@ -19,7 +19,7 @@ Live API mode is the default. Deploy the Apps Script backend and configure `.env
 4. Choose Minimal, Modern, or Developer; font, accent, visible sections, and order.
 5. Publish from My Portfolio. Share `/u/COLLEGE_ID` using copy, native share, or QR. Save as PDF uses the browser print dialog.
 6. Return with the same identity to edit, add, or delete records. Unpublish removes public access.
-7. Share suggestions or report issues through Feedback in the workspace or website footer. Submissions go to a private Feedback sheet; see [backend/FEEDBACK-SETUP.md](backend/FEEDBACK-SETUP.md).
+7. Share suggestions or report issues through Feedback in the workspace or website footer. Submissions go to the separate private Ascend Feedback spreadsheet; see [backend/FEEDBACK-SETUP.md](backend/FEEDBACK-SETUP.md).
 
 ## Connect Google Sheets
 
