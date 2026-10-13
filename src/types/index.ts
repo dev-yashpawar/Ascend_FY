@@ -29,6 +29,20 @@ export interface Skill {
   skillName: string;
   sortOrder: number;
 }
+export const educationLevels = ['10th', '12th', 'Diploma', 'Engineering'] as const;
+export interface EducationRecord {
+  educationId: string;
+  collegeId: string;
+  level: (typeof educationLevels)[number];
+  institution: string;
+  board: string;
+  academicYear: string;
+  engineeringYear: string;
+  gradingType: 'Percentage' | 'CGPA';
+  score: string;
+  scale: string;
+  showPublic: boolean;
+}
 export interface Project {
   projectId: string;
   collegeId: string;
@@ -122,6 +136,7 @@ export interface PortfolioSettings {
   updatedAt: string;
 }
 export interface Portfolio {
+  education?: EducationRecord[];
   student: Student;
   skills: Skill[];
   projects: Project[];
@@ -153,6 +168,7 @@ export function emptyPortfolio(collegeId: string, collegeEmail: string): Portfol
       updatedAt: now,
     },
     skills: [],
+    education: [],
     projects: [],
     experiences: [],
     activities: [],

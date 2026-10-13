@@ -1,0 +1,107 @@
+.education-editor {
+  padding: 28px;
+  margin-bottom: 24px;
+}
+.education-editor h2 {
+  font-size: 20px;
+  margin-bottom: 24px;
+}
+.education-editor fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.education-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.education-actions .icon-btn {
+  min-width: 44px;
+  min-height: 44px;
+}
+.education-visibility {
+  min-height: 44px;
+  line-height: 1.6;
+}
+.education-records {
+  display: grid;
+  gap: 16px;
+}
+.education-record {
+  padding: 24px;
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.education-record > svg {
+  color: var(--primary);
+  margin-top: 4px;
+}
+.education-record-copy {
+  flex: 1;
+  min-width: 160px;
+  overflow-wrap: anywhere;
+}
+.education-record h2 {
+  font-size: 18px;
+  margin: 8px 0;
+}
+.education-record p {
+  font-size: 13px;
+}
+.education-record strong {
+  display: block;
+  margin-top: 12px;
+  font-size: 15px;
+}
+.education-record small {
+  display: block;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.education-delete {
+  flex-basis: 100%;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.education-empty {
+  padding: 36px;
+  text-align: center;
+}
+.education-empty svg {
+  color: var(--primary);
+  margin: auto auto 16px;
+}
+.education-empty h2 {
+  font-size: 22px;
+}
+.education-empty p {
+  max-width: 540px;
+  margin: 12px auto 0;
+  font-size: 14px;
+}
+@media (max-width: 600px) {
+  .education-editor,
+  .education-record {
+    padding: 20px;
+  }
+  .education-editor .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .education-editor .education-actions > .btn {
+    flex: 1;
+  }
+  .education-record > .education-actions {
+    width: 100%;
+  }
+  .education-empty {
+    padding: 24px;
+  }
+}

@@ -13,6 +13,14 @@ const render = (portfolio: Portfolio) =>
       <PortfolioView portfolio={portfolio} />
     </MemoryRouter>,
   );
+it('shows only explicitly public education results and respects Education section visibility', () => {
+  const p = completePortfolio();
+  p.education = [{ educationId: 'edu-1', collegeId: p.student.collegeId, level: 'Engineering', institution: 'Public Engineering College', board: '', academicYear: '2025-2026', engineeringYear: '2', gradingType: 'CGPA', score: '8.75', scale: '10', showPublic: true }, { educationId: 'edu-2', collegeId: p.student.collegeId, level: '10th', institution: 'Private School', board: '', academicYear: '', engineeringYear: '', gradingType: 'Percentage', score: '91', scale: '100', showPublic: false }];
+  expect(render(p)).toContain('8.75 / 10 CGPA');
+  expect(render(p)).not.toContain('Private School');
+  p.settings.hiddenSections.push('Education');
+  expect(render(p)).not.toContain('Public Engineering College');
+});
 
 it('renders real work and only opted-in contact and certificate proof', () => {
   const p = completePortfolio();

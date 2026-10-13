@@ -90,6 +90,7 @@ const items = [
   ['experience', 'Experience', BriefcaseBusiness],
   ['activities', 'Activities', Award],
   ['skills', 'Skills', Tags],
+  ['education', 'Education', GraduationCap],
   ['settings', 'Profile Settings', Settings2],
   ['feedback', 'Feedback', MessageSquare],
 ] as const;

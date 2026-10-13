@@ -393,6 +393,11 @@
   color: var(--pp-muted);
   margin-bottom: 15px;
 }
+.pp-education-results { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-top: 26px; }
+.pp-education-results article { min-width: 0; border-top: 1px solid var(--pp-line); padding-top: 20px; }
+.pp-education-results h3 { font-size: 19px; }
+.pp-education-results strong { color: var(--pp-text); font-size: 16px; }
+@container portfolio (max-width: 650px) { .pp-education-results { grid-template-columns: 1fr; } }
 .pp-tag,
 .pp-tags span {
   display: inline-block;

@@ -10,6 +10,7 @@ import { DashboardPage, RecordsPage, SkillsPage, ProfileSettingsPage } from './p
 import { PortfolioBuilderPage } from './pages/PortfolioBuilderPage';
 import { PublicPortfolioPage } from './pages/PublicPortfolioPage';
 import { FeedbackPage } from './pages/FeedbackPage';
+import { EducationPage } from './pages/EducationPage';
 import { DashboardLayout } from './components/layout/Layout';
 import './styles.css';
 function ScrollReset() {
@@ -41,6 +42,7 @@ function App() {
             <Route path="experience" element={<RecordsPage kind="experience" />} />
             <Route path="activities" element={<RecordsPage kind="activity" />} />
             <Route path="skills" element={<SkillsPage />} />
+            <Route path="education" element={<EducationPage />} />
             <Route path="settings" element={<ProfileSettingsPage />} />
             <Route path="feedback" element={<FeedbackPage workspace />} />
           </Route>

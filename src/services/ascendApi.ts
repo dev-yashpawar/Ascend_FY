@@ -10,10 +10,12 @@ import {
   type StudentRecord,
   type StudentFeedback,
   type FeedbackReceipt,
+  type EducationRecord,
 } from '../types';
 import { demoPortfolios } from '../mock/data';
 import { recordId, validateIdentity } from '../utils/profile';
 import { validateFeedback } from '../utils/feedback';
+import { validateEducation } from '../utils/education';
 // Student pilot builds always use the live API. Fixtures are explicitly opt-in in development.
 export const isMock = import.meta.env.DEV && import.meta.env.VITE_USE_MOCK_DATA === 'true';
 const DB_KEY = 'ascend:mock:v1';
@@ -39,6 +41,7 @@ function readDB(): Record<string, Portfolio> {
 function publicData(p: Portfolio): Portfolio {
   const result = structuredClone(p);
   result.student.collegeEmail = '';
+  result.education = (result.education || []).filter((r) => r.showPublic === true);
   if (result.links.showEmail !== true) result.links.publicEmail = '';
   if (result.links.showPhone !== true) result.links.phone = '';
   result.experiences.forEach((r) => {
@@ -121,6 +124,7 @@ async function mock<T>(action: string, payload: Record<string, unknown>): Promis
     };
   if (action === 'saveSkills') p.skills = payload.skills as Skill[];
   if (action === 'saveLinks') p.links = payload.links as ProfessionalLinks;
+  if (action === 'saveEducation') p.education = payload.education as EducationRecord[];
   if (action === 'saveSettings')
     p.settings = {
       ...(payload.settings as PortfolioSettings),
@@ -233,6 +237,7 @@ async function request<T>(
 function normalizePortfolio(p: Portfolio & { experience?: Portfolio['experiences'] }): Portfolio {
   return {
     ...p,
+    education: p.education || [],
     experiences: (p.experiences || p.experience || []).map((r) => ({
       ...r,
       proofUrl: r.proofUrl || '',
@@ -314,6 +319,26 @@ export const api = {
     request<Portfolio>('saveStudent', { collegeId: student.collegeId, student }),
   saveSkills: (collegeId: string, skills: Skill[]) =>
     request<Portfolio>('saveSkills', { collegeId, skills }),
+  saveEducation: async (collegeId: string, education: EducationRecord[]) => {
+    for (const record of education) {
+      const issue = validateEducation(record);
+      if (issue) throw new Error(issue);
+    }
+    if (!isMock) {
+      let ready = false;
+      try {
+        ready = (await request<{ schemaReady: boolean }>('getEducationCapabilities', {}, true))
+          .schemaReady;
+      } catch {
+        /* Older backend. */
+      }
+      if (!ready)
+        throw new Error(
+          'Education needs the updated backend. Run setupAscend, then deploy a New version. Your entries are still here.',
+        );
+    }
+    return request<Portfolio>('saveEducation', { collegeId, education });
+  },
   saveLinks: async (links: ProfessionalLinks) => {
     if (!isMock && ['publicEmail', 'phone', 'showEmail', 'showPhone'].some((k) => k in links)) {
       let ready = false;

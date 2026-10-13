@@ -155,6 +155,38 @@ function harness() {
       .data;
   return { context, sheets, mainSheets, feedbackSheets, post, get, start, root };
 }
+test('education saves structured school and engineering results, protects owners, and hides private grades', () => {
+  const h = harness();
+  const session = h.start().session;
+  const entry = { educationId: 'education-1', level: 'Engineering', institution: 'Example College', board: 'Example University', academicYear: '2025-2026', engineeringYear: '1', gradingType: 'CGPA', score: '8.75', scale: '10', showPublic: false };
+  const body = { action: 'saveEducation', ...session, education: [entry] };
+  assert.equal(h.get({ action: 'getEducationCapabilities' }).data.schemaReady, true);
+  const saved = h.post(body);
+  assert.equal(saved.success, true);
+  assert.equal(saved.data.education[0].score, '8.75');
+  assert.equal(h.sheets.Education.getLastRow(), 2);
+  assert.equal(h.post(body).success, true);
+  assert.equal(h.sheets.Education.getLastRow(), 2);
+  for (const patch of [{score:'11'}, {score:'NaN'}, {score:'-1'}, {engineeringYear:'5'}, {showPublic:'true'}, {institution:''}]) assert.equal(h.post({...body, education:[{...entry,...patch}]}).success, false);
+  assert.equal(h.sheets.Education.data[1][8], '8.75');
+  assert.equal(h.post({...body,education:[entry,{...entry,educationId:'duplicate-year'}]}).success,false);
+  const other = h.start('STKBTCOE23888').session;
+  assert.equal(h.post({...body,...other}).success,false);
+  h.post({action:'saveStudent',...session,student:{fullName:'Test Student',branch:'IT',year:'2nd Year'}});
+  h.post({action:'saveSettings',...session,settings:{...saved.data.settings,published:true}});
+  assert.equal(h.get({action:'getPortfolio',collegeId:session.collegeId}).data.education.length,0);
+  assert.equal(h.get({action:'getPortfolio',...session,publicOnly:'true'}).data.education.length,0);
+  assert.equal(h.get({action:'getPublishedPortfolios'}).data[0].education.length,0);
+  const result = h.post({...body,education:[{...entry,showPublic:true,score:'0'},{...entry,educationId:'education-2',engineeringYear:'2',score:''}]});
+  assert.equal(result.success,true);
+  assert.equal(h.get({action:'getPortfolio',collegeId:session.collegeId}).data.education[0].score,'0');
+  assert.equal(h.get({action:'getPortfolio',collegeId:session.collegeId}).data.education.length,1);
+  h.context.setupAscend();
+  assert.equal(h.sheets.Education.getLastRow(),3);
+  assert.equal(h.post({...body,education:[]}).success,true);
+  assert.equal(h.sheets.Education.getLastRow(),1);
+});
+
 test('feedback uses a separate spreadsheet and migration preserves records without duplicates', () => {
   const h = harness();
   assert.equal(h.mainSheets.Feedback, undefined);
@@ -210,9 +242,9 @@ test('feedback is private, validates input, and retries never duplicate a submis
   assert.equal(h.sheets.Feedback.getLastRow(),11);
 });
 
-test('sets up all eight exact schemas and normalizes case', () => {
+test('sets up all nine exact schemas and normalizes case', () => {
   const h = harness();
-  assert.equal(Object.keys(h.sheets).length, 8);
+  assert.equal(Object.keys(h.sheets).length, 9);
   const r = h.post({
     action: 'startSession',
     collegeId: 'kbtug23513',
@@ -580,6 +612,7 @@ test('public aggregates omit proof URLs, editable reads retain them, and student
     'Links',
     'PortfolioSettings',
     'Feedback',
+    'Education',
   ]);
 });
 

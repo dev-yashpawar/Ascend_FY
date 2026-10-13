@@ -1,7 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import type { Portfolio, Section } from '../../types';
-import { activitiesFor, collegeName } from '../../utils/profile';
+import { activitiesFor } from '../../utils/profile';
+import { PortfolioEducation } from './PortfolioEducation';
 import { PortfolioHero, PortfolioNav, PortfolioStats } from './PortfolioIdentity';
 import {
   FeaturedProjects,
@@ -23,14 +24,10 @@ export function PortfolioView({
   const { student: s, settings } = p;
   const content: Partial<Record<Section, ReactNode>> = {
     About: s.about ? <p className="pp-about-copy">{s.about}</p> : null,
-    Education: s.branch ? (
-      <div className="pp-education">
-        <span className="pp-overline">ACADEMIC FOUNDATION</span>
-        <h3>{s.branch}</h3>
-        <p>{collegeName}</p>
-        {s.year && <span className="pp-tag">{s.year}</span>}
-      </div>
-    ) : null,
+    Education:
+      s.branch || p.education?.some((r) => r.showPublic) ? (
+        <PortfolioEducation records={p.education || []} student={s} />
+      ) : null,
     Skills: p.skills.length ? <SkillsSection skills={p.skills} /> : null,
     Projects: p.projects.length ? <FeaturedProjects projects={p.projects} /> : null,
     Experience: p.experiences.length ? <ExperienceTimeline experiences={p.experiences} /> : null,

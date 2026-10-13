@@ -72,6 +72,7 @@ var SCHEMA = {
     'updated_at',
   ],
   Feedback: ['feedback_id', 'college_id', 'category', 'subject', 'message', 'created_at', 'status'],
+  Education: ['education_id', 'college_id', 'level', 'institution', 'board', 'academic_year', 'engineering_year', 'grading_type', 'score', 'scale', 'show_public'],
 };
 var SECTIONS = [
   'About',
@@ -195,6 +196,10 @@ function doGet(e) {
     var p = e.parameter || {};
     var action = p.action;
     var id = p.collegeId ? identityId_(p.collegeId) : '';
+    if (action === 'getEducationCapabilities') {
+      var educationSheet = spreadsheet_().getSheetByName('Education');
+      return { schemaReady: !!educationSheet && JSON.stringify(educationSheet.getRange(1, 1, 1, SCHEMA.Education.length).getValues()[0]) === JSON.stringify(SCHEMA.Education) };
+    }
     if (action === 'getFeedbackCapabilities') {
       var feedbackSheet = tableSpreadsheet_('Feedback').getSheetByName('Feedback');
       return {
@@ -351,7 +356,7 @@ function camel_(obj) {
     var value = obj[k];
     if (['tech_stack', 'section_order', 'hidden_sections'].indexOf(k) >= 0)
       value = typeof value === 'string' ? JSON.parse(value || '[]') : value;
-    if (['currently_working', 'published', 'is_public_proof', 'show_email', 'show_phone'].indexOf(k) >= 0)
+    if (['currently_working', 'published', 'is_public_proof', 'show_email', 'show_phone', 'show_public'].indexOf(k) >= 0)
       value = value === true || value === 'true';
     out[key] = value;
   });
@@ -410,6 +415,7 @@ function portfolio_(id, owner, publicView) {
     projects: children('Projects'),
     experiences: children('Experience'),
     activities: children('Activities'),
+    education: spreadsheet_().getSheetByName('Education') ? children('Education').filter(function (r) { return (owner && !publicView) || r.showPublic === true; }) : [],
     links: publicLinks,
     settings: camel_(settings),
   };
@@ -459,6 +465,35 @@ function submitFeedback_(f, id, now) {
   });
   return { feedbackId: feedbackId, createdAt: now };
 }
+function saveEducation_(input, id) {
+  var sheet = spreadsheet_().getSheetByName('Education');
+  if (!sheet || JSON.stringify(sheet.getRange(1, 1, 1, SCHEMA.Education.length).getValues()[0]) !== JSON.stringify(SCHEMA.Education))
+    throw new Error('Run setupAscend to create Education, then deploy a New version.');
+  var existing = rows_('Education');
+  var ids = Object.create(null), levels = Object.create(null);
+  var records = list_(input, 7).map(function (r) {
+    if (!r || typeof r !== 'object') throw new Error('Invalid education record.');
+    var rid = uuid_(r.educationId);
+    if (ids[rid]) throw new Error('Duplicate education ID.');
+    ids[rid] = true;
+    if (existing.some(function (e) { return e.education_id === rid && e.college_id !== id; })) throw new Error('Education belongs to another student.');
+    if (['10th', '12th', 'Diploma', 'Engineering'].indexOf(r.level) < 0) throw new Error('Choose an education level.');
+    var year = r.level === 'Engineering' ? required_(r.engineeringYear, 'Engineering year', 1) : '';
+    if (year && ['1', '2', '3', '4'].indexOf(year) < 0) throw new Error('Choose an engineering year from 1 to 4.');
+    var slot = r.level + year;
+    if (levels[slot]) throw new Error('Only one result per education level or engineering year is allowed.');
+    levels[slot] = true;
+    if (['Percentage', 'CGPA'].indexOf(r.gradingType) < 0) throw new Error('Choose a grading type.');
+    var scale = r.gradingType === 'Percentage' ? '100' : clean_(r.scale, 2);
+    if (r.gradingType === 'CGPA' && ['4', '10'].indexOf(scale) < 0) throw new Error('Choose a CGPA scale of 4 or 10.');
+    var score = clean_(r.score, 10);
+    if (score && (!/^\d+(?:\.\d{1,2})?$/.test(score) || Number(score) > Number(scale))) throw new Error('Result must be between 0 and ' + scale + ', with up to two decimal places.');
+    if (typeof r.showPublic !== 'boolean') throw new Error('Choose education visibility.');
+    return { education_id: rid, college_id: id, level: r.level, institution: required_(r.institution, 'Institution', 200), board: clean_(r.board, 200), academic_year: clean_(r.academicYear, 40), engineering_year: year, grading_type: r.gradingType, score: score, scale: scale, show_public: r.showPublic };
+  });
+  records.forEach(function (r) { store_('Education', 'education_id', r); });
+  existing.filter(function (r) { return r.college_id === id && !ids[r.education_id]; }).forEach(function (r) { delete_('Education', 'education_id', r.education_id, id); });
+}
 function mutate_(b) {
   var id = identityId_(b.collegeId);
   var now = new Date().toISOString();
@@ -498,6 +533,10 @@ function mutate_(b) {
   var student = find_('Students', 'college_id', id);
   if (!student) throw new Error('Student not found.');
   if (action === 'submitFeedback') return submitFeedback_(b.feedback, id, now);
+  if (action === 'saveEducation') {
+    saveEducation_(b.education, id);
+    return portfolio_(id, true);
+  }
   if (action === 'uploadFile') return uploadFile_(b, id);
   if (action === 'saveStudent') {
     var s = b.student || {};

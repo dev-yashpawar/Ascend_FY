@@ -20,6 +20,7 @@ Live API mode is the default. Deploy the Apps Script backend and configure `.env
 5. Publish from My Portfolio. Share `/u/COLLEGE_ID` using copy, native share, or QR. Save as PDF uses the browser print dialog.
 6. Return with the same identity to edit, add, or delete records. Unpublish removes public access.
 7. Share suggestions or report issues through Feedback in the workspace or website footer. Submissions go to the separate private Ascend Feedback spreadsheet; see [backend/FEEDBACK-SETUP.md](backend/FEEDBACK-SETUP.md).
+8. Add school, diploma, and year-wise engineering results under Education. Percentage/CGPA records are private until the student enables public visibility; see [backend/EDUCATION-SETUP.md](backend/EDUCATION-SETUP.md).
 
 ## Connect Google Sheets
 
