@@ -1,5 +1,5 @@
-import { Link, NavLink, Navigate, Outlet } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import {
   ArrowUpRight,
   LayoutDashboard,
@@ -19,6 +19,7 @@ import {
 import { getSession, isMock, setSession } from '../../services/api';
 import { usePortfolio } from '../../hooks/usePortfolio';
 import { Avatar, Loading, ErrorState } from '../ui';
+import { feedbackNeedsLogin } from '../../utils/feedback';
 export function Logo() {
   return (
     <Link to="/" className="logo" aria-label="Ascend home">
@@ -95,10 +96,20 @@ const items = [
 export function DashboardLayout() {
   const { portfolio, loading, error, refresh, setPortfolio } = usePortfolio();
   const [open, setOpen] = useState(false);
-  if (!getSession()) return <Navigate to="/identity" replace />;
+  const location = useLocation();
+  const isFeedback = location.pathname === '/dashboard/feedback';
+  const invalidFeedbackSession = isFeedback && feedbackNeedsLogin(error);
+  const loginUrl = isFeedback ? '/identity?next=%2Fdashboard%2Ffeedback' : '/identity';
+  useEffect(() => {
+    if (invalidFeedbackSession) {
+      setSession(null);
+      setPortfolio(null);
+    }
+  }, [invalidFeedbackSession, setPortfolio]);
+  if (!getSession() || invalidFeedbackSession) return <Navigate to={loginUrl} replace />;
   if (loading) return <Loading />;
   if (error) return <ErrorState message={error} retry={() => void refresh()} />;
-  if (!portfolio) return <Navigate to="/identity" replace />;
+  if (!portfolio) return <Navigate to={loginUrl} replace />;
   return (
     <div className="dashboard-shell">
       <aside className={`sidebar ${open ? 'open' : ''}`}>

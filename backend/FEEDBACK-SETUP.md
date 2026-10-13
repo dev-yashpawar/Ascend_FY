@@ -2,6 +2,8 @@
 
 Students can submit suggestions, bug reports, and general feedback from **Feedback** in the workspace, the workspace header on mobile, or **Feedback & suggestions** in the website footer (`/feedback`). Sign-in is required to submit; no extra email field is collected.
 
+Opening Feedback without a session, or with a missing/expired student identity, redirects to `/identity` and returns directly to the same Feedback page after a successful sign-in. New students can send feedback before completing portfolio onboarding. Temporary network errors keep the retry option rather than forcing a login.
+
 ## Enable Google Sheets collection
 
 1. Copy the complete updated `backend/Code.gs` into the existing Apps Script project and save.

@@ -1,15 +1,26 @@
-import { Link } from 'react-router-dom';
-import { MessageSquare } from 'lucide-react';
+import { useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { PublicNav, Footer, PageHeading } from '../components/layout/Layout';
 import { FeedbackForm } from '../components/forms/FeedbackForm';
 import { Loading, ErrorState } from '../components/ui';
 import { usePortfolio } from '../hooks/usePortfolio';
-import { getSession, isMock } from '../services/api';
+import { getSession, isMock, setSession } from '../services/api';
+import { feedbackNeedsLogin } from '../utils/feedback';
 import './feedback.css';
 
 export function FeedbackPage({ workspace = false }: { workspace?: boolean }) {
-  const { portfolio, loading, error, refresh } = usePortfolio();
+  const { portfolio, loading, error, refresh, setPortfolio } = usePortfolio();
   const session = getSession();
+  const invalidSession = feedbackNeedsLogin(error);
+  const loginUrl = `/identity?next=${encodeURIComponent(workspace ? '/dashboard/feedback' : '/feedback')}`;
+  useEffect(() => {
+    if (invalidSession) {
+      setSession(null);
+      setPortfolio(null);
+    }
+  }, [invalidSession, setPortfolio]);
+  if (!session || invalidSession || (!loading && !error && !portfolio))
+    return <Navigate to={loginUrl} replace />;
   const content = (
     <>
       <PageHeading
@@ -18,28 +29,14 @@ export function FeedbackPage({ workspace = false }: { workspace?: boolean }) {
         description="Share a suggestion, report a problem, or tell us what you enjoyed. We’re building this for students, with students."
       />
       {isMock && <p className="demo-notice">Demo mode · feedback is saved on this device only.</p>}
-      {!session ? (
-        <section className="card student-feedback-success">
-          <MessageSquare size={30} aria-hidden="true" />
-          <h2>We’d love to hear from you.</h2>
-          <p>
-            Sign in with your college ID and personal or college email, then open Feedback from your
-            workspace.
-          </p>
-          <Link className="btn primary" to="/identity">
-            Sign in to share feedback
-          </Link>
-        </section>
-      ) : loading ? (
+      {loading ? (
         <Loading label="Getting your feedback form ready…" />
       ) : error ? (
         <ErrorState message={error} retry={() => void refresh()} />
       ) : portfolio ? (
         <FeedbackForm collegeId={portfolio.student.collegeId} />
       ) : (
-        <Link className="btn primary" to="/identity">
-          Sign in again
-        </Link>
+        <Navigate to={loginUrl} replace />
       )}
     </>
   );

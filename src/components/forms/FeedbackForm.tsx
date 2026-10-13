@@ -1,11 +1,16 @@
 import { useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Loader2, Send } from 'lucide-react';
-import { api } from '../../services/api';
+import { api, setSession } from '../../services/api';
 import { feedbackCategories, type StudentFeedback } from '../../types';
-import { validateFeedback } from '../../utils/feedback';
+import { validateFeedback, feedbackNeedsLogin } from '../../utils/feedback';
+import { usePortfolio } from '../../hooks/usePortfolio';
 import { Field, TextArea, Feedback } from '../ui';
 
 export function FeedbackForm({ collegeId }: { collegeId: string }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { setPortfolio } = usePortfolio();
   const [category, setCategory] = useState<StudentFeedback['category']>('Suggestion');
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -35,7 +40,12 @@ export function FeedbackForm({ collegeId }: { collegeId: string }) {
       setMessage('');
       attempt.current = null;
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Feedback could not be sent. Please retry.');
+      const message = e instanceof Error ? e.message : 'Feedback could not be sent. Please retry.';
+      if (feedbackNeedsLogin(message)) {
+        setSession(null);
+        setPortfolio(null);
+        navigate(`/identity?next=${encodeURIComponent(location.pathname)}`, { replace: true });
+      } else setError(message);
     } finally {
       setBusy(false);
     }

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowRight, ArrowLeft, ShieldCheck, Mail, CheckCircle2, Loader2 } from 'lucide-react';
 import { Logo } from '../components/layout/Layout';
 import { Field, Feedback } from '../components/ui';
 import { api, isMock, setSession } from '../services/api';
 import { usePortfolio } from '../hooks/usePortfolio';
 import { validateIdentity } from '../utils/profile';
+import { feedbackReturnPath } from '../utils/feedback';
 export function StudentIdentityPage() {
   const [id, setId] = useState('');
   const [email, setEmail] = useState('');
@@ -14,6 +15,8 @@ export function StudentIdentityPage() {
   const [existing, setExisting] = useState(false);
   const { setPortfolio } = usePortfolio();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnTo = feedbackReturnPath(searchParams.get('next'));
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (busy) return;
@@ -30,7 +33,8 @@ export function StudentIdentityPage() {
       const result = await api.startSession(collegeId, email.trim().toLowerCase());
       setSession(result.session);
       setPortfolio(result.portfolio);
-      if (result.exists) setExisting(true);
+      if (returnTo) navigate(returnTo, { replace: true });
+      else if (result.exists) setExisting(true);
       else navigate('/onboarding?step=2');
     } catch (e) {
       setError((e as Error).message);
@@ -115,7 +119,11 @@ export function StudentIdentityPage() {
                 <br />
                 college identity.
               </h2>
-              <p>Your portfolio starts here. It takes just a few minutes.</p>
+              <p>
+                {returnTo
+                  ? 'Sign in to share feedback. We’ll take you straight back to the form.'
+                  : 'Your portfolio starts here. It takes just a few minutes.'}
+              </p>
               {isMock && (
                 <div className="demo-notice">
                   Demo mode · your data stays on this device. Try KBTUG23513 to explore the sample
@@ -145,7 +153,11 @@ export function StudentIdentityPage() {
                 <Feedback error={error} />
                 <button className="btn primary full" disabled={busy}>
                   {busy ? <Loader2 size={17} className="spin" /> : <ArrowRight size={17} />}{' '}
-                  {busy ? 'Checking your identity…' : 'Let’s build your portfolio'}
+                  {busy
+                    ? 'Checking your identity…'
+                    : returnTo
+                      ? 'Sign in to share feedback'
+                      : 'Let’s build your portfolio'}
                 </button>
               </form>
               <div className="identity-privacy">
