@@ -21,6 +21,8 @@ import { Avatar, ErrorState, Loading } from '../components/ui';
 import { api, isMock } from '../services/api';
 import type { Portfolio } from '../types';
 import { demoPortfolios } from '../mock/data';
+import { CampusImage } from '../components/layout/CampusImage';
+import './campus.css';
 const samples = demoPortfolios();
 export function PortfolioCard({
   portfolio: p,
@@ -272,6 +274,26 @@ export function LandingPage() {
             ))}
           </div>
         </section>
+        <section className="campus-ecosystem container" aria-labelledby="campus-heading">
+          <div className="campus-copy">
+            <span className="eyebrow">OUR CAMPUS</span>
+            <h2 id="campus-heading">Built around a real campus ecosystem.</h2>
+            <p>
+              From the classroom to the projects beyond it, every student has a story. Ascend brings
+              those experiences into one professional profile, with structured records for the
+              institution.
+            </p>
+          </div>
+          <figure className="campus-figure">
+            <div className="campus-frame">
+              <CampusImage photo="entrance" />
+            </div>
+            <figcaption>
+              <span>KBTCOE · Nashik</span>
+              <span>Photography: Yash Kardile</span>
+            </figcaption>
+          </figure>
+        </section>
         <section className="value-section container">
           <div className="value-intro">
             <span className="eyebrow">MORE THAN A LIST OF ACHIEVEMENTS</span>
@@ -322,23 +344,43 @@ export function LandingPage() {
             })}
           </div>
         </section>
-        <section className="institution-section container">
-          <div className="institution-mark">
-            <ShieldCheck size={35} />
+        <figure className="campus-figure campus-editorial container">
+          <div className="campus-frame">
+            <CampusImage photo="atrium" wide />
           </div>
-          <div>
+          <figcaption>
+            <span>More than records. A story of your journey.</span>
+            <span>Photography: Yash Kardile</span>
+          </figcaption>
+        </figure>
+        <section
+          className="institution-section campus-trust container"
+          aria-labelledby="campus-trust-heading"
+        >
+          <figure className="campus-figure">
+            <div className="campus-frame">
+              <CampusImage photo="building" />
+            </div>
+            <figcaption>
+              <span>KBTCOE · Nashik, Maharashtra</span>
+            </figcaption>
+          </figure>
+          <div className="campus-copy">
+            <div className="institution-mark">
+              <ShieldCheck size={24} />
+            </div>
             <span className="eyebrow">BUILT ON TRUST</span>
-            <h2>Your work. Clear provenance.</h2>
+            <h2 id="campus-trust-heading">Your work. Clear provenance.</h2>
             <p>
               Student-entered records stay self reported. An Institution Verified badge appears only
               after a record is verified by your college. Faculty tools are coming in the full
               platform.
             </p>
+            <Link to="/faculty" className="text-link">
+              For institutions
+              <ArrowUpRight size={17} />
+            </Link>
           </div>
-          <Link to="/faculty" className="text-link">
-            For institutions
-            <ArrowUpRight size={17} />
-          </Link>
         </section>
         <section className="mobile-feature container">
           <div>
