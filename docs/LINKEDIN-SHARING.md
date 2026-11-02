@@ -2,7 +2,7 @@
 
 ## Architecture
 
-Ascend keeps React/Vite, Apps Script, Sheets and Drive. A small Node Vercel Function (`api/linkedin/[...route].js`) adds native cryptography, OAuth and official LinkedIn HTTP calls using built-in APIs, without a new runtime dependency. Saving activities/skills never publishes: the user opens sharing, prepares a draft, saves the latest preview, approves it and deliberately clicks Publish.
+Ascend keeps React/Vite, Apps Script, Sheets and Drive. A small Node Vercel Function (`api/linkedin-handler.js`) adds native cryptography, OAuth and official LinkedIn HTTP calls using built-in APIs, without a new runtime dependency. Saving activities/skills never publishes: the user opens sharing, prepares a draft, saves the latest preview, approves it and deliberately clicks Publish.
 
 ```text
 React → Ascend Node API → authenticated Apps Script bridge → private Sheets / Drive
@@ -110,7 +110,9 @@ Workflow settings disable saved successful/error executions, manual execution sa
 
 ## 5. Run and deploy
 
-Deploy to the existing Vercel project. The Node function is under `/api/linkedin/*`; SPA rewrites exclude `/api/` and static images so API requests are not rewritten to index.html.
+Deploy to the existing Vercel project. An explicit rewrite maps `/api/linkedin/:path*` to the concrete `/api/linkedin-handler` function with a reserved route parameter. The handler prefers the original public path when preserved, otherwise validates the rewritten route against its known routes. Unknown/duplicate route parameters are rejected, and neither reconstruction path bypasses authentication. The registered `/api/linkedin/oauth/callback` URL and cookie path remain unchanged. SPA rewrites exclude `/api/` and static images so API requests are not rewritten to index.html.
+
+Safe deployment smoke check (does not start OAuth): `GET /api/linkedin/oauth/start` must return HTTP **405**, JSON `success: false` / `message: Method not allowed.`, and no `x-vercel-error: NOT_FOUND`. A successful Vite build alone does not verify serverless routing.
 
 Local development needs two terminals:
 

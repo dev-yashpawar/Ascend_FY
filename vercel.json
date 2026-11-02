@@ -1,6 +1,10 @@
 {
-  "functions": { "api/linkedin/*.js": { "maxDuration": 60 } },
+  "functions": { "api/linkedin-handler.js": { "maxDuration": 60 } },
   "rewrites": [
+    {
+      "source": "/api/linkedin/:path*",
+      "destination": "/api/linkedin-handler?__ascend_linkedin_path=:path*"
+    },
     { "source": "/((?!api/|assets/|images/|favicon.svg).*)", "destination": "/index.html" }
   ]
 }

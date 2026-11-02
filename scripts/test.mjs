@@ -8,7 +8,12 @@ mkdirSync(temp, { recursive: true });
 const env = { ...process.env, TEMP: temp, TMP: temp, TMPDIR: temp };
 for (const args of [
   ['node_modules/vitest/vitest.mjs', 'run'],
-  ['--test', 'tests/backend.test.mjs', 'tests/linkedin.test.mjs'],
+  [
+    '--test',
+    'tests/backend.test.mjs',
+    'tests/linkedin.test.mjs',
+    'tests/linkedin-routing.test.mjs',
+  ],
 ]) {
   const result = spawnSync(process.execPath, args, { env, stdio: 'inherit' });
   if (result.error) {

@@ -1,5 +1,6 @@
 import { createService } from './service.mjs';
 import { SafeError, equal } from './security.mjs';
+import { resolveLinkedInRequest } from './routing.mjs';
 export function createHandler(options = {}) {
   const env = options.env || process.env,
     service = options.service || createService(options);
@@ -7,14 +8,13 @@ export function createHandler(options = {}) {
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    const url = new URL(req.url, 'https://ascend.invalid');
-    const path = url.pathname.replace(/^\/api\/linkedin\/?/, '');
     const json = (status, data) => {
       res.statusCode = status;
       res.setHeader('Content-Type', 'application/json');
       res.end(JSON.stringify(data));
     };
     try {
+      const { path, parameter } = resolveLinkedInRequest(req);
       if (path === 'oauth/callback' && req.method === 'GET') {
         let result;
         const binding = String(req.headers.cookie || '')
@@ -24,9 +24,9 @@ export function createHandler(options = {}) {
           ?.slice(16);
         try {
           result = await service.oauthCallback({
-            state: url.searchParams.get('state'),
-            code: url.searchParams.get('code'),
-            denied: !!url.searchParams.get('error'),
+            state: parameter('state'),
+            code: parameter('code'),
+            denied: !!parameter('error'),
             binding,
           });
         } catch {
