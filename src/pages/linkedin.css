@@ -1,0 +1,169 @@
+.linkedin-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+  gap: 24px;
+  align-items: start;
+}
+.linkedin-editor,
+.linkedin-preview,
+.linkedin-empty {
+  padding: 28px;
+  min-width: 0;
+}
+.linkedin-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.linkedin-account > div {
+  flex: 1;
+  min-width: 160px;
+}
+.linkedin-account p,
+.linkedin-media p,
+.linkedin-context p,
+.linkedin-hint,
+.linkedin-result p {
+  font-size: 12px;
+  margin-top: 8px;
+}
+.linkedin-source {
+  margin: 24px 0;
+}
+.linkedin-source h2,
+.linkedin-preview h2 {
+  font-size: 21px;
+  margin: 10px 0;
+  overflow-wrap: anywhere;
+}
+.linkedin-source p,
+.linkedin-public {
+  font-size: 12px;
+}
+.linkedin-editor fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.linkedin-editor textarea {
+  min-height: 210px;
+}
+.linkedin-context {
+  padding: 16px 0;
+  border-block: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.linkedin-context summary {
+  cursor: pointer;
+  font-size: 13px;
+  min-height: 28px;
+}
+.linkedin-context .checkbox-label {
+  margin: 14px 0;
+}
+.linkedin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.linkedin-media {
+  margin: 24px 0;
+}
+.linkedin-upload {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  min-height: 60px;
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.linkedin-upload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+.linkedin-upload:focus-within {
+  outline: 3px solid #8b95ff;
+  outline-offset: 4px;
+}
+.linkedin-image {
+  display: block;
+  max-height: 360px;
+  max-width: 100%;
+  width: auto;
+  object-fit: contain;
+  border-radius: 10px;
+  margin: 16px auto;
+}
+.linkedin-caption {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+  line-height: 1.8;
+  padding: 22px 0;
+}
+.linkedin-portfolio-url {
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.linkedin-notice {
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+  margin: 18px 0;
+}
+.linkedin-layout .checkbox-label {
+  min-height: 44px;
+  line-height: 1.6;
+}
+.linkedin-layout .checkbox-label input {
+  flex: 0 0 16px;
+}
+.linkedin-result {
+  margin-top: 20px;
+  padding: 18px;
+  background: #f4f5f9;
+  border-radius: 10px;
+  overflow-wrap: anywhere;
+}
+.linkedin-empty .btn {
+  margin-top: 18px;
+  margin-right: 10px;
+}
+.linkedin-share-entry {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  font-size: 12px;
+  color: var(--primary);
+}
+@media (max-width: 1100px) {
+  .linkedin-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .linkedin-editor,
+  .linkedin-preview,
+  .linkedin-empty {
+    padding: 20px;
+  }
+  .linkedin-actions > .btn {
+    flex: 1;
+  }
+  .linkedin-account > .btn {
+    width: 100%;
+  }
+}

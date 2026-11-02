@@ -152,6 +152,7 @@ function setupAscend() {
     }
   });
   migrateFeedback_();
+  if (typeof setupLinkedIn === 'function') setupLinkedIn();
 }
 // Copy missing historical submissions; preserve the old tab and destination edits.
 function migrateFeedback_() {
@@ -241,10 +242,14 @@ function doPost(e) {
     var body;
     try { body = JSON.parse(e.postData.contents); } catch (_) { throw new Error('Invalid JSON request.'); }
     if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('Invalid request payload.');
-    if (body.action !== 'uploadFile' && e.postData.contents.length > 150000) throw new Error('Request is too large.');
+    if (body.action !== 'uploadFile' && body.action !== 'linkedinInternal' && e.postData.contents.length > 150000) throw new Error('Request is too large.');
     var lock = LockService.getScriptLock();
     if (!lock.tryLock(15000)) throw new Error('The service is busy. Please retry.');
     try {
+      if (body.action === 'linkedinInternal') {
+        if (typeof linkedinBridge_ !== 'function') throw new Error('Install LinkedIn.gs and run setupAscend.');
+        return linkedinBridge_(body);
+      }
       return mutate_(body);
     } finally {
       lock.releaseLock();

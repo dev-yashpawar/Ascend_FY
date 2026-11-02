@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowUp, ArrowDown, X, Plus, Loader2 } from 'lucide-react';
 import { api } from '../../services/api';
 import { usePortfolio } from '../../hooks/usePortfolio';
@@ -17,6 +18,7 @@ export function SkillsForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [savedSkill, setSavedSkill] = useState('');
   function add(value: string) {
     const name = value.trim().slice(0, 60);
     if (!name) return;
@@ -57,6 +59,10 @@ export function SkillsForm({
         ),
       );
       setSuccess('Skills saved.');
+      setSavedSkill(
+        skills.find((s) => !portfolio!.skills.some((previous) => previous.skillId === s.skillId))
+          ?.skillId || '',
+      );
       onSaved?.();
     } catch (e) {
       setError((e as Error).message);
@@ -95,6 +101,15 @@ export function SkillsForm({
         {skills.map((s, i) => (
           <div className="editable-chip" key={s.skillId}>
             <span>{s.skillName}</span>
+            {portfolio!.skills.some((saved) => saved.skillId === s.skillId) && (
+              <Link
+                className="linkedin-share-entry"
+                to={`/dashboard/linkedin?sourceKind=skill&sourceId=${encodeURIComponent(s.skillId)}`}
+                aria-label={`Share ${s.skillName} on LinkedIn`}
+              >
+                Share ↗
+              </Link>
+            )}
             <button
               className="icon-btn"
               aria-label={`Move ${s.skillName} up`}
@@ -153,6 +168,14 @@ export function SkillsForm({
         {busy && <Loader2 size={16} className="spin" />}
         {busy ? 'Saving…' : label}
       </button>
+      {savedSkill && (
+        <Link
+          className="btn secondary small"
+          to={`/dashboard/linkedin?sourceKind=skill&sourceId=${encodeURIComponent(savedSkill)}`}
+        >
+          Share on LinkedIn
+        </Link>
+      )}
     </div>
   );
 }

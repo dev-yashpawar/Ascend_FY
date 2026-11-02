@@ -1,0 +1,354 @@
+{
+  "name": "Ascend · Publish approved LinkedIn draft",
+  "nodes": [
+    {
+      "id": "receive-publishing-job",
+      "name": "Receive publishing job",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ascend-linkedin-publish",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "webhookId": "ascend-ascend-linkedin-publish",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SELECT_ASCEND_WEBHOOK_HEADER_CREDENTIAL",
+          "name": "Ascend webhook (Ascend → n8n)"
+        }
+      }
+    },
+    {
+      "id": "ascend-origin",
+      "name": "Ascend origin",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        0
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "origin",
+              "name": "apiOrigin",
+              "type": "string",
+              "value": "https://ascend-fy.vercel.app"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "claim-approved-job",
+      "name": "Claim approved job",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Ascend origin').first().json.apiOrigin + '/api/linkedin/internal/claim' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {jobId:$('Receive publishing job').first().json.body.jobId} }}",
+        "options": {
+          "timeout": 100000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SELECT_ASCEND_INTERNAL_HEADER_CREDENTIAL",
+          "name": "Ascend internal API (n8n → Ascend)"
+        }
+      },
+      "retryOnFail": false
+    },
+    {
+      "id": "eligible-approved-job",
+      "name": "Eligible approved job",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "eligible",
+              "leftValue": "={{ $json.data.eligible }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "publish-approved-snapshot",
+      "name": "Publish approved snapshot",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        -100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Ascend origin').first().json.apiOrigin + '/api/linkedin/internal/publish' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {jobId:$('Claim approved job').first().json.data.jobId,claimToken:$('Claim approved job').first().json.data.claimToken} }}",
+        "options": {
+          "timeout": 100000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SELECT_ASCEND_INTERNAL_HEADER_CREDENTIAL",
+          "name": "Ascend internal API (n8n → Ascend)"
+        }
+      },
+      "retryOnFail": false
+    },
+    {
+      "id": "return-existing-status",
+      "name": "Return existing status",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        120
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{success:true,data:$input.first().json.data.job}}];"
+      }
+    },
+    {
+      "id": "respond-to-webhook",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        1200,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "recover-queued-jobs",
+      "name": "Recover queued jobs",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        420
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "recovery-origin",
+      "name": "Recovery origin",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        420
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "origin",
+              "name": "apiOrigin",
+              "type": "string",
+              "value": "https://ascend-fy.vercel.app"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "recover-durable-queue",
+      "name": "Recover durable queue",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        420
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Recovery origin').first().json.apiOrigin + '/api/linkedin/internal/recover' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{}",
+        "options": {
+          "timeout": 100000
+        }
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "SELECT_ASCEND_INTERNAL_HEADER_CREDENTIAL",
+          "name": "Ascend internal API (n8n → Ascend)"
+        }
+      },
+      "retryOnFail": false
+    }
+  ],
+  "connections": {
+    "Receive publishing job": {
+      "main": [
+        [
+          {
+            "node": "Ascend origin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ascend origin": {
+      "main": [
+        [
+          {
+            "node": "Claim approved job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claim approved job": {
+      "main": [
+        [
+          {
+            "node": "Eligible approved job",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eligible approved job": {
+      "main": [
+        [
+          {
+            "node": "Publish approved snapshot",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return existing status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Publish approved snapshot": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return existing status": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recover queued jobs": {
+      "main": [
+        [
+          {
+            "node": "Recovery origin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recovery origin": {
+      "main": [
+        [
+          {
+            "node": "Recover durable queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false,
+    "saveExecutionProgress": false,
+    "executionTimeout": 120
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

@@ -1,4 +1,5 @@
 import { UploadField } from './UploadField';
+import { Link } from 'react-router-dom';
 import { proofCategory } from '../../utils/uploads';
 import { useState } from 'react';
 import {
@@ -83,6 +84,7 @@ export function RecordEditor({ kind, onContinue }: { kind: RecordKind; onContinu
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [savedActivity, setSavedActivity] = useState('');
   const Icon = cfg.icon;
   function update(key: string, value: unknown) {
     setDraft((d) => (d ? ({ ...d, [key]: value } as StudentRecord) : null));
@@ -107,6 +109,7 @@ export function RecordEditor({ kind, onContinue }: { kind: RecordKind; onContinu
     setBusy(true);
     try {
       setPortfolio(await api.saveRecord(kind, draft, editing));
+      if (kind === 'activity') setSavedActivity(recordId(draft));
       setDraft(null);
       setSuccess(`${cfg.title[0].toUpperCase() + cfg.title.slice(1)} saved.`);
     } catch (e) {
@@ -132,6 +135,14 @@ export function RecordEditor({ kind, onContinue }: { kind: RecordKind; onContinu
   return (
     <div className="records-editor">
       <Feedback error={!draft ? error : ''} success={success} />
+      {!draft && savedActivity && (
+        <Link
+          className="btn secondary small"
+          to={`/dashboard/linkedin?sourceKind=activity&sourceId=${encodeURIComponent(savedActivity)}`}
+        >
+          Share on LinkedIn
+        </Link>
+      )}
       {draft ? (
         <form className="record-form card" onSubmit={save}>
           <div className="record-form-heading">
@@ -382,6 +393,14 @@ export function RecordEditor({ kind, onContinue }: { kind: RecordKind; onContinu
                         : item.techStack.filter(Boolean).join(' · ')}
                     </p>
                     <p className="record-description">{item.description}</p>
+                    {kind === 'activity' && (
+                      <Link
+                        className="linkedin-share-entry"
+                        to={`/dashboard/linkedin?sourceKind=activity&sourceId=${encodeURIComponent(id)}`}
+                      >
+                        Share on LinkedIn <ArrowRight size={14} />
+                      </Link>
+                    )}
                     {'activityDate' in item && (
                       <small>
                         {item.category} · {dateLabel(item.activityDate)}

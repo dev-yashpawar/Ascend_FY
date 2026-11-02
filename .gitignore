@@ -14,6 +14,18 @@ dist/
 *.p12
 *.pfx
 
+# Local provider credential exports and captured authenticated traffic
+.n8n/
+credentials.json
+credentials.*.json
+*-credentials.json
+client_secret*.json
+service-account*.json
+service_account*.json
+oauth-tokens*.json
+token-cache*.json
+*.har
+
 # Deployment and local tool state
 .vercel/
 .codex/

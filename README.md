@@ -1,5 +1,7 @@
 # ASCEND
 
+LinkedIn achievement sharing setup: [docs/LINKEDIN-SHARING.md](docs/LINKEDIN-SHARING.md). The optional Node API and n8n workflows require server-side configuration; activity saves never publish automatically.
+
 Centralized Student Activity Record & Digital Portfolio Platform. React + Vite + TypeScript + Tailwind CSS, with Google Apps Script and Google Sheets persistence. Institutional modules are labeled previews; student portfolios are the working vertical slice.
 
 ## Run the connected app

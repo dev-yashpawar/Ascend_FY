@@ -18,6 +18,7 @@ import { RecordEditor } from '../components/forms/RecordEditor';
 import { SkillsForm } from '../components/forms/SkillsForm';
 import { ProfileForm } from '../components/forms/ProfileForm';
 import { LinksForm } from '../components/forms/LinksForm';
+import { LinkedInConnection } from '../components/profile/LinkedInConnection';
 import type { RecordKind } from '../types';
 export function DashboardPage() {
   const { portfolio: p } = usePortfolio();
@@ -229,6 +230,7 @@ export function ProfileSettingsPage() {
         <h2>Professional links</h2>
         <LinksForm />
       </section>
+      <LinkedInConnection />
     </>
   );
 }

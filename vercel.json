@@ -1,1 +1,6 @@
-{ "rewrites": [{ "source": "/((?!assets/|favicon.svg).*)", "destination": "/index.html" }] }
+{
+  "functions": { "api/linkedin/*.js": { "maxDuration": 60 } },
+  "rewrites": [
+    { "source": "/((?!api/|assets/|images/|favicon.svg).*)", "destination": "/index.html" }
+  ]
+}
